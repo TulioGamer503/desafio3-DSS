@@ -33,33 +33,42 @@ class SongController
         global $pdo;
         $titulo  = trim($_POST['titulo']  ?? '');
         $artista = trim($_POST['artista'] ?? '');
-        $album   = trim($_POST['album']   ?? '');  // ← nuevo
-        $ano     = intval($_POST['ano']    ?? 0);
+        $album   = trim($_POST['album']   ?? '');
+        $ano     = trim($_POST['ano']     ?? '');
         $enlace  = trim($_POST['enlace']  ?? '');
         $errors  = [];
 
-        // Validaciones
-        if ($titulo === '')  { $errors[] = 'El título es obligatorio.'; }
-        if ($artista === '') { $errors[] = 'El artista es obligatorio.'; }
-        // album es opcional, pero limitamos longitud
+        // Validaciones con regex
+        if ($titulo === '') {
+            $errors[] = 'El título es obligatorio.';
+        }
+        if ($artista === '') {
+            $errors[] = 'El artista es obligatorio.';
+        }
         if (strlen($album) > 255) {
             $errors[] = 'El nombre del álbum no puede exceder 255 caracteres.';
         }
-        if ($ano <= 0)       { $errors[] = 'El año debe ser un número válido.'; }
-        if ($enlace && !filter_var($enlace, FILTER_VALIDATE_URL)) {
-            $errors[] = 'El enlace debe ser una URL válida.';
+        // Año: sólo dígitos, entre 1000 y 9999
+        if (!preg_match('/^[0-9]{4}$/', $ano) || intval($ano) <= 0) {
+            $errors[] = 'El año debe ser un número de cuatro dígitos válido.';
+        }
+        // Enlace: debe empezar con http:// o https://
+        if ($enlace && !preg_match('#^https?://\S+$#', $enlace)) {
+            $errors[] = 'El enlace debe comenzar con http:// o https:// y no contener espacios.';
         }
 
         if ($errors) {
             include APP_ROOT . '/app/views/songs/create.php';
         } else {
-            Song::create($pdo,
-                         $_SESSION['user_id'],
-                         $titulo,
-                         $artista,
-                         $album,       // ← pasamos album
-                         $ano,
-                         $enlace);
+            Song::create(
+                $pdo,
+                $_SESSION['user_id'],
+                $titulo,
+                $artista,
+                $album,
+                intval($ano),
+                $enlace
+            );
             $_SESSION['success'] = 'Canción agregada correctamente.';
             header('Location: /desafio3-DSS/public/songs');
             exit;
@@ -86,23 +95,29 @@ class SongController
         $id       = $_POST['id']    ?? null;
         $titulo   = trim($_POST['titulo']  ?? '');
         $artista  = trim($_POST['artista'] ?? '');
-        $album    = trim($_POST['album']   ?? '');  // ← nuevo
-        $ano      = intval($_POST['ano']    ?? 0);
+        $album    = trim($_POST['album']   ?? '');
+        $ano      = trim($_POST['ano']     ?? '');
         $enlace   = trim($_POST['enlace']  ?? '');
         $errors   = [];
 
-        if ($titulo === '')  { $errors[] = 'El título es obligatorio.'; }
-        if ($artista === '') { $errors[] = 'El artista es obligatorio.'; }
+        if ($titulo === '') {
+            $errors[] = 'El título es obligatorio.';
+        }
+        if ($artista === '') {
+            $errors[] = 'El artista es obligatorio.';
+        }
         if (strlen($album) > 255) {
             $errors[] = 'El nombre del álbum no puede exceder 255 caracteres.';
         }
-        if ($ano <= 0)       { $errors[] = 'El año debe ser un número válido.'; }
-        if ($enlace && !filter_var($enlace, FILTER_VALIDATE_URL)) {
-            $errors[] = 'El enlace debe ser una URL válida.';
+        if (!preg_match('/^[0-9]{4}$/', $ano) || intval($ano) <= 0) {
+            $errors[] = 'El año debe ser un número de cuatro dígitos válido.';
+        }
+        if ($enlace && !preg_match('#^https?://\S+$#', $enlace)) {
+            $errors[] = 'El enlace debe comenzar con http:// o https:// y no contener espacios.';
         }
 
         if ($errors) {
-            // reinyectamos datos en la vista
+            // Reinyectar datos en la vista
             $song = (object)[
                 'id'       => $id,
                 'titulo'   => $titulo,
@@ -113,13 +128,15 @@ class SongController
             ];
             include APP_ROOT . '/app/views/songs/edit.php';
         } else {
-            Song::update($pdo,
-                         $id,
-                         $titulo,
-                         $artista,
-                         $album,       // ← pasamos album
-                         $ano,
-                         $enlace);
+            Song::update(
+                $pdo,
+                $id,
+                $titulo,
+                $artista,
+                $album,
+                intval($ano),
+                $enlace
+            );
             $_SESSION['success'] = 'Canción actualizada correctamente.';
             header('Location: /desafio3-DSS/public/songs');
             exit;

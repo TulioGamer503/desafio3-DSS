@@ -18,15 +18,28 @@ class AuthController
         $password = $_POST['password'] ?? '';
         $errors   = [];
 
+        // Valida longitud mínima de usuario
         if (strlen($username) < 3) {
             $errors[] = 'El usuario debe tener al menos 3 caracteres.';
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+        // Valida email con regex
+        if (!preg_match(
+            '/^[\w\.\+\-]+@[A-Za-z0-9\-]+\.[A-Za-z]{2,}(?:\.[A-Za-z]{2,})*$/',
+            $email
+        )) {
             $errors[] = 'Email no válido.';
         }
-        if (strlen($password) < 6) {
-            $errors[] = 'La contraseña debe tener al menos 6 caracteres.';
+
+        // Valida contraseña: mínimo 6 caracteres, al menos una letra y un número
+        if (!preg_match(
+            '/^(?=.*[A-Za-z])(?=.*\d).{6,}$/',
+            $password
+        )) {
+            $errors[] = 'La contraseña debe tener al menos 6 caracteres y contener letras y números.';
         }
+
+        // Comprueba duplicado de email
         if (User::findByEmail($pdo, $email)) {
             $errors[] = 'Ya existe ese email.';
         }
