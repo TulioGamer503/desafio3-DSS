@@ -22,21 +22,20 @@
       <tr>
         <th>Título</th>
         <th>Artista</th>
+        <th>Álbum</th>        <!-- Nueva columna -->
         <th>Año</th>
         <th>Enlace</th>
         <th>Acciones</th>
       </tr>
     </thead>
     <tbody id="songs-list">
-      <!-- Aquí se inyectarán las filas vía JS -->
       <tr id="no-songs-row" style="display:none;">
-        <td colspan="5">No tienes canciones. ¡Agrega la primera!</td>
+        <td colspan="6">No tienes canciones. ¡Agrega la primera!</td>
       </tr>
     </tbody>
   </table>
 
   <script>
-    // La URL de tu endpoint REST (fuera de public/)
     const API_URL = '/desafio3-DSS/api/songs.php';
 
     async function loadSongs() {
@@ -47,9 +46,7 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const songs = await res.json();
 
-        // Limpia tabla
         tbody.innerHTML = '';
-
         if (songs.length === 0) {
           noSongsRow.style.display = '';
           tbody.appendChild(noSongsRow);
@@ -61,6 +58,7 @@
           tr.innerHTML = `
             <td>${s.titulo}</td>
             <td>${s.artista}</td>
+            <td>${s.album || ''}</td>      <!-- Mostramos álbum -->
             <td>${s.ano}</td>
             <td>${s.enlace ? `<a href="${s.enlace}" target="_blank">Ver</a>` : ''}</td>
             <td>
