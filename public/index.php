@@ -12,9 +12,8 @@ use Controllers\SongController;
 $router = new Router();
 
 // ───────── RUTA DE PRUEBA ─────────
-$router->add('GET', '/desafio3-DSS/public/', function() {
-    echo '¡Router funcionando!';
-});
+// “Home” de tu app → listado de canciones
+$router->add('GET', '/desafio3-DSS/public/', [new SongController, 'index']);
 
 // ───────── RUTAS DE AUTENTICACIÓN ─────────
 // Mostrar formulario de registro
