@@ -7,6 +7,7 @@ class Song
     public $user_id;
     public $titulo;
     public $artista;
+    public $album;      // ← nuevo
     public $ano;
     public $enlace;
     public $created_at;
@@ -23,6 +24,16 @@ class Song
     }
 
     /**
+     * (Opcional) Obtiene todas las canciones de todos los usuarios
+     */
+    public static function all(\PDO $pdo)
+    {
+        $sql = "SELECT * FROM canciones ORDER BY created_at DESC";
+        return $pdo->query($sql)
+                   ->fetchAll(\PDO::FETCH_CLASS, self::class);
+    }
+
+    /**
      * Obtiene una canción por su ID
      */
     public static function find(\PDO $pdo, $id)
@@ -36,19 +47,20 @@ class Song
     /**
      * Crea una nueva canción
      */
-    public static function create(\PDO $pdo, $userId, $titulo, $artista, $ano, $enlace)
+    public static function create(\PDO $pdo, $userId, $titulo, $artista, $album, $ano, $enlace)
     {
         $sql = "INSERT INTO canciones
-                  (user_id, titulo, artista, ano, enlace)
+                  (user_id, titulo, artista, album, ano, enlace)
                 VALUES
-                  (:u, :t, :a, :y, :l)";
+                  (:u, :t, :a, :al, :y, :l)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            ':u' => $userId,
-            ':t' => $titulo,
-            ':a' => $artista,
-            ':y' => $ano,
-            ':l' => $enlace
+            ':u'  => $userId,
+            ':t'  => $titulo,
+            ':a'  => $artista,
+            ':al' => $album,
+            ':y'  => $ano,
+            ':l'  => $enlace
         ]);
         return $pdo->lastInsertId();
     }
@@ -56,11 +68,12 @@ class Song
     /**
      * Actualiza una canción existente
      */
-    public static function update(\PDO $pdo, $id, $titulo, $artista, $ano, $enlace)
+    public static function update(\PDO $pdo, $id, $titulo, $artista, $album, $ano, $enlace)
     {
         $sql = "UPDATE canciones
                    SET titulo  = :t,
                        artista = :a,
+                       album   = :al,
                        ano     = :y,
                        enlace  = :l
                  WHERE id = :id";
@@ -68,6 +81,7 @@ class Song
         return $stmt->execute([
             ':t'  => $titulo,
             ':a'  => $artista,
+            ':al' => $album,
             ':y'  => $ano,
             ':l'  => $enlace,
             ':id' => $id
