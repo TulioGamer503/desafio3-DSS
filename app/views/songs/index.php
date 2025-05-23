@@ -22,7 +22,7 @@
       <tr>
         <th>Título</th>
         <th>Artista</th>
-        <th>Álbum</th>        <!-- Nueva columna -->
+        <th>Álbum</th>
         <th>Año</th>
         <th>Enlace</th>
         <th>Acciones</th>
@@ -55,20 +55,21 @@
 
         songs.forEach(s => {
           const tr = document.createElement('tr');
+          tr.dataset.id = s.id;
           tr.innerHTML = `
             <td>${s.titulo}</td>
             <td>${s.artista}</td>
-            <td>${s.album || ''}</td>      <!-- Mostramos álbum -->
+            <td>${s.album||''}</td>
             <td>${s.ano}</td>
             <td>${s.enlace ? `<a href="${s.enlace}" target="_blank">Ver</a>` : ''}</td>
             <td>
               <a href="/desafio3-DSS/public/songs/edit?id=${s.id}">✎</a>
-              <a href="/desafio3-DSS/public/songs/delete?id=${s.id}"
-                 onclick="return confirm('¿Eliminar esta canción?');">🗑</a>
+              <a href="#" class="delete-btn">🗑</a>
             </td>
           `;
           tbody.appendChild(tr);
         });
+
       } catch (err) {
         console.error('Error cargando canciones:', err);
         noSongsRow.textContent = 'Error cargando canciones.';
@@ -76,6 +77,33 @@
         tbody.appendChild(noSongsRow);
       }
     }
+
+    // Manejador de clicks en "🗑" para borrado AJAX
+    document.addEventListener('click', async e => {
+      if (e.target.matches('.delete-btn')) {
+        e.preventDefault();
+        const tr = e.target.closest('tr');
+        const id = tr.dataset.id;
+        if (!confirm('¿Eliminar esta canción?')) return;
+
+        try {
+          const res = await fetch(API_URL, {
+            method: 'DELETE',
+            headers: {'Content-Type':'application/json'},
+            // envía la sesión porque el navegador la gestiona automáticamente
+            body: JSON.stringify({id})
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const json = await res.json();
+          console.log(json.message);
+          // recarga sólo la lista
+          loadSongs();
+        } catch (err) {
+          console.error('Error eliminando canción:', err);
+          alert('No se pudo eliminar la canción.');
+        }
+      }
+    });
 
     window.addEventListener('DOMContentLoaded', loadSongs);
   </script>
